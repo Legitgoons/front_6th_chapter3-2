@@ -92,3 +92,154 @@ export const setupMockHandlerDeletion = () => {
     })
   );
 };
+
+// 반복 일정 생성을 위한 핸들러
+export const setupMockHandlerRepeating = () => {
+  const mockEvents: Event[] = [];
+
+  server.use(
+    http.get('/api/events', () => {
+      return HttpResponse.json({ events: mockEvents });
+    }),
+    http.post('/api/events-list', async ({ request }) => {
+      const { events } = (await request.json()) as { events: Event[] };
+      const repeatId = Math.random().toString(36).substr(2, 9);
+
+      const newEvents = events.map((event, index) => ({
+        ...event,
+        id: String(mockEvents.length + index + 1),
+        repeat: {
+          ...event.repeat,
+          id: event.repeat.type !== 'none' ? repeatId : undefined,
+        },
+      }));
+
+      mockEvents.push(...newEvents);
+      return HttpResponse.json(newEvents, { status: 201 });
+    })
+  );
+};
+
+// 반복 일정 수정을 위한 핸들러
+export const setupMockHandlerRepeatingUpdate = () => {
+  const mockEvents: Event[] = [
+    {
+      id: '1',
+      title: '매주 회의',
+      date: '2025-10-06',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '매주 월요일 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, id: 'repeat-123' },
+      notificationTime: 10,
+    },
+    {
+      id: '2',
+      title: '매주 회의',
+      date: '2025-10-13',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '매주 월요일 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, id: 'repeat-123' },
+      notificationTime: 10,
+    },
+    {
+      id: '3',
+      title: '매주 회의',
+      date: '2025-10-20',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '매주 월요일 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, id: 'repeat-123' },
+      notificationTime: 10,
+    },
+  ];
+
+  server.use(
+    http.get('/api/events', () => {
+      return HttpResponse.json({ events: mockEvents });
+    }),
+    http.put('/api/events/:id', async ({ params, request }) => {
+      const { id } = params;
+      const updatedEvent = (await request.json()) as Event;
+      const index = mockEvents.findIndex((event) => event.id === id);
+
+      if (index !== -1) {
+        // 수정 시 반복 일정을 단일 일정으로 변경
+        mockEvents[index] = {
+          ...mockEvents[index],
+          ...updatedEvent,
+          repeat: { type: 'none', interval: 0 }, // 단일 일정으로 변경
+        };
+        return HttpResponse.json(mockEvents[index]);
+      }
+
+      return new HttpResponse(null, { status: 404 });
+    })
+  );
+};
+
+// 반복 일정 삭제를 위한 핸들러
+export const setupMockHandlerRepeatingDeletion = () => {
+  const mockEvents: Event[] = [
+    {
+      id: '1',
+      title: '매주 회의',
+      date: '2025-10-06',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '매주 월요일 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, id: 'repeat-456' },
+      notificationTime: 10,
+    },
+    {
+      id: '2',
+      title: '매주 회의',
+      date: '2025-10-13',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '매주 월요일 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, id: 'repeat-456' },
+      notificationTime: 10,
+    },
+    {
+      id: '3',
+      title: '매주 회의',
+      date: '2025-10-20',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '매주 월요일 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, id: 'repeat-456' },
+      notificationTime: 10,
+    },
+  ];
+
+  server.use(
+    http.get('/api/events', () => {
+      return HttpResponse.json({ events: mockEvents });
+    }),
+    http.delete('/api/events/:id', ({ params }) => {
+      const { id } = params;
+      const index = mockEvents.findIndex((event) => event.id === id);
+
+      if (index !== -1) {
+        mockEvents.splice(index, 1); // 해당 일정만 삭제
+        return new HttpResponse(null, { status: 204 });
+      }
+
+      return new HttpResponse(null, { status: 404 });
+    })
+  );
+};

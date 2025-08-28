@@ -36,4 +36,48 @@ export const handlers = [
 
     return new HttpResponse(null, { status: 404 });
   }),
+
+  // 반복 일정 생성
+  http.post('/api/events-list', async ({ request }) => {
+    const { events: newEvents } = (await request.json()) as { events: Event[] };
+    const repeatId = Math.random().toString(36).substr(2, 9);
+
+    const createdEvents = newEvents.map((event, index) => ({
+      ...event,
+      id: String(events.length + index + 1),
+      repeat: {
+        ...event.repeat,
+        id: event.repeat.type !== 'none' ? repeatId : undefined,
+      },
+    }));
+
+    return HttpResponse.json(createdEvents, { status: 201 });
+  }),
+
+  // 반복 일정 수정
+  http.put('/api/events-list', async ({ request }) => {
+    const { events: eventsToUpdate } = (await request.json()) as { events: Event[] };
+
+    const updatedEvents = eventsToUpdate.map((eventUpdate) => {
+      const index = events.findIndex((event) => event.id === eventUpdate.id);
+      if (index !== -1) {
+        return { ...events[index], ...eventUpdate };
+      }
+      return eventUpdate;
+    });
+
+    return HttpResponse.json(updatedEvents);
+  }),
+
+  // 반복 일정 삭제
+  http.delete('/api/events-list', async ({ request }) => {
+    const { eventIds } = (await request.json()) as { eventIds: string[] };
+    const exists = events.some((event) => eventIds.find((id) => event.id === id));
+
+    if (!exists) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];

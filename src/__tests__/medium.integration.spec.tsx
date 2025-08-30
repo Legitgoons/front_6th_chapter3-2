@@ -11,6 +11,7 @@ import {
   setupMockHandlerDeletion,
   setupMockHandlerUpdating,
   setupMockHandlerRepeating,
+  setupMockHandlerRepeatingDeletion,
 } from '../__mocks__/handlersUtils';
 import App from '../App';
 import { server } from '../setupTests';
@@ -92,7 +93,7 @@ describe('일정 CRUD 및 기본 기능', () => {
     await user.clear(screen.getByLabelText('설명'));
     await user.type(screen.getByLabelText('설명'), '회의 내용 변경');
 
-    await user.click(screen.getByRole('button', { name: /일정 추가/ }));
+    await user.click(screen.getByRole('button', { name: /일정 수정/ }));
 
     const eventList = within(screen.getByLabelText('일정 목록'));
     expect(eventList.getByText('수정된 회의')).toBeInTheDocument();
@@ -317,7 +318,7 @@ describe('일정 충돌', () => {
     await user.clear(screen.getByLabelText('종료 시간'));
     await user.type(screen.getByLabelText('종료 시간'), '10:30');
 
-    await user.click(screen.getByRole('button', { name: /일정 추가/ }));
+    await user.click(screen.getByRole('button', { name: /일정 수정/ }));
 
     expect(screen.getByText('일정 겹침 경고')).toBeInTheDocument();
     expect(screen.getByText(/다음 일정과 겹칩니다/)).toBeInTheDocument();
@@ -599,7 +600,7 @@ describe('반복 일정 기능', () => {
 
   describe('5. 반복 일정 단일 삭제', () => {
     it('반복 일정을 삭제하면 해당 일정만 삭제된다', async () => {
-      setupMockHandlerDeletion();
+      setupMockHandlerRepeatingDeletion();
       vi.setSystemTime(new Date('2025-10-15'));
 
       const { user } = setup(<App />);

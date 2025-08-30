@@ -70,23 +70,104 @@ export const setupMockHandlerUpdating = () => {
   );
 };
 
+// 단일 이벤트 삭제 테스트용 핸들러
 export const setupMockHandlerDeletion = () => {
-  // 반복 일정 기본 이벤트
-  const baseEvent: Event = {
-    id: '1',
-    title: '반복 일정',
-    date: '2025-10-15',
-    startTime: '09:00',
-    endTime: '10:00',
-    description: '매일 반복되는 일정',
-    location: '회의실 A',
-    category: '업무',
-    repeat: { type: 'daily', interval: 1 },
-    notificationTime: 10,
-  };
+  const mockEvents: Event[] = [
+    {
+      id: '1',
+      title: '삭제할 이벤트',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '삭제 테스트용 이벤트',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    },
+  ];
 
-  // 반복 일정의 여러 인스턴스 생성
-  const mockEvents: Event[] = generateRepeatingEvents(baseEvent);
+  server.use(
+    http.get('/api/events', () => {
+      return HttpResponse.json({ events: mockEvents });
+    }),
+    http.delete('/api/events/:id', ({ params }) => {
+      const { id } = params;
+      const index = mockEvents.findIndex((event) => event.id === id);
+
+      if (index !== -1) {
+        mockEvents.splice(index, 1);
+      }
+      return new HttpResponse(null, { status: 204 });
+    })
+  );
+};
+
+// 반복 일정 단일 삭제 테스트용 핸들러
+export const setupMockHandlerRepeatingDeletion = () => {
+  // 삭제 테스트용으로 제한적인 반복 일정 인스턴스들만 생성 (5개)
+  const mockEvents: Event[] = [
+    {
+      id: '1-1',
+      title: '반복 일정',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '매일 반복되는 일정',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1 },
+      notificationTime: 10,
+    },
+    {
+      id: '1-2',
+      title: '반복 일정',
+      date: '2025-10-16',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '매일 반복되는 일정',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1 },
+      notificationTime: 10,
+    },
+    {
+      id: '1-3',
+      title: '반복 일정',
+      date: '2025-10-17',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '매일 반복되는 일정',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1 },
+      notificationTime: 10,
+    },
+    {
+      id: '1-4',
+      title: '반복 일정',
+      date: '2025-10-18',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '매일 반복되는 일정',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1 },
+      notificationTime: 10,
+    },
+    {
+      id: '1-5',
+      title: '반복 일정',
+      date: '2025-10-19',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '매일 반복되는 일정',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1 },
+      notificationTime: 10,
+    },
+  ];
 
   server.use(
     http.get('/api/events', () => {
@@ -135,7 +216,7 @@ const generateRepeatingEvents = (baseEvent: Event): Event[] => {
   const startDate = new Date(baseEvent.date);
   const endDate = baseEvent.repeat.endDate
     ? new Date(baseEvent.repeat.endDate)
-    : new Date(startDate.getFullYear() + 5, startDate.getMonth(), startDate.getDate());
+    : new Date('2025-10-30'); // 예제 특성상 2025-10-30까지만 생성
 
   let currentDate = new Date(startDate);
   let eventId = 1;
